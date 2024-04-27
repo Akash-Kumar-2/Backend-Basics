@@ -1,11 +1,12 @@
-
 const express = require('express');
 const morgan = require('morgan');
+const AppError = require('./utlis/appError');
+const globalErrorHandler = require('./controllers/errorController');
+
 const app = express();
 
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
-
 
 ////////////////////////////////////////////////  Middleware  ///////////////////////////////////////////////////////////////////////////////
 
@@ -13,10 +14,10 @@ app.use(express.json());
 
 //we can also define middleware
 
-app.use((req,res,next)=>{
-    console.log('hello');
- next();
-});
+// app.use((req, res, next) => {
+//   console.log('hello');
+//   next();
+// });
 
 //serving static files through folder
 
@@ -28,29 +29,19 @@ app.use(express.static(`${__dirname}/public`));
 
 //we can also manpulate req or res
 
-app.use((req,res,next)=>{
-   
-    req.requestTime = new Date().toISOString();
+app.use((req, res, next) => {
+  req.requestTime = new Date().toISOString();
   next();
 });
 
 // environment variable, config file once read can be used anywhere
-if(process.env.NODE_ENV==='development'){
-app.use(morgan('dev'));
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
 }
-
-
-
-
-
-
-
-
 
 // // Define route to fetch tours
 
-////////////////////////////// Before Refactoring Code /////////////////////////////////////////////////////////////////// 
-
+////////////////////////////// Before Refactoring Code ///////////////////////////////////////////////////////////////////
 
 // app.get('/api/v1/tours', (req, res) => {
 //     res.status(200).json({
@@ -81,10 +72,8 @@ app.use(morgan('dev'));
 // });
 
 // app.get('/api/v1/tours/:id',(req,res)=>{
-    
 //     // convert id from string to int
-//     const id = req.params.id * 1;  
-    
+//     const id = req.params.id * 1;
 //     if(id>tours.length){
 //    return res.status(404).json({
 // status:'fail',
@@ -102,13 +91,12 @@ app.use(morgan('dev'));
 // });
 
 // app.patch('/api/v1/tours/:id',(req,res)=>{
-   
 //     if(req.params.id*1>tours.length){
 //         return res.status(404).json({
 //      status:'fail',
 //      message:'Invalid Id'
 //      });}
-    
+
 //     res.status(200).json({
 //         status:'success',
 //         data:{
@@ -117,13 +105,13 @@ app.use(morgan('dev'));
 //     });
 // });
 // app.delete('/api/v1/tours/:id',(req,res)=>{
-   
+
 //     if(req.params.id*1>tours.length){
 //         return res.status(404).json({
 //      status:'fail',
 //      message:'Invalid Id'
 //      });}
-    
+
 //     res.status(204).json({
 //         status:'success',
 //         data:null
@@ -132,10 +120,8 @@ app.use(morgan('dev'));
 
 //////////////////////////////////////////////////////////////   After  Refactoring/////////////////////////////////////////////////////////
 
-
-
 // const getAllTours=(req, res) => {
-//     console.log(req.requestTime);    
+//     console.log(req.requestTime);
 //     res.status(200).json({
 //             status: 'success',
 //             requestTime:req.requestTime,
@@ -147,24 +133,24 @@ app.use(morgan('dev'));
 //         });
 //     };
 // const getTour=(req,res)=>{
-    
+
 //         // convert id from string to int
-//         const id = req.params.id * 1;  
-        
+//         const id = req.params.id * 1;
+
 //         if(id>tours.length){
 //        return res.status(404).json({
 //     status:'fail',
 //     message:'Invalid Id'
 //     });}
 //         const tour = tours.find(ele=>ele.id===id);
-    
+
 //         res.status(200).json({
 //             status:'success',
 //             data:{
 //                 tour
 //             }
 //         });
-    
+
 //     };
 // const createTour=(req,res)=>{
 //         // console.log(req.body);
@@ -179,18 +165,18 @@ app.use(morgan('dev'));
 //                 }
 //             })
 //         })
-    
+
 //         // res.send('done');
 //     };
-    
+
 // const updateTour=(req,res)=>{
-   
+
 //         if(req.params.id*1>tours.length){
 //             return res.status(404).json({
 //          status:'fail',
 //          message:'Invalid Id'
 //          });}
-        
+
 //         res.status(200).json({
 //             status:'success',
 //             data:{
@@ -204,12 +190,12 @@ app.use(morgan('dev'));
 //          status:'fail',
 //          message:'Invalid Id'
 //          });}
-        
+
 //         res.status(204).json({
 //             status:'success',
 //             data:null
 //         });
-//     }; 
+//     };
 
 //   const getAllUsers = (req,res)=>{
 //     res.status(500).json({
@@ -218,21 +204,20 @@ app.use(morgan('dev'));
 //     })
 //   }
 
-
 //   const createUser = (req,res)=>{
 //     res.status(500).json({
 //         status:'error',
 //         message:'Route not defined yet '
 //     })
 //   }
-  
+
 //   const getUser = (req,res)=>{
 //     res.status(500).json({
 //         status:'error',
 //         message:'Route not defined yet '
 //     })
 //   }
-  
+
 //   const updateUser = (req,res)=>{
 //     res.status(500).json({
 //         status:'error',
@@ -240,7 +225,6 @@ app.use(morgan('dev'));
 //     })
 //   }
 
-  
 //   const deleteUser = (req,res)=>{
 //     res.status(500).json({
 //         status:'error',
@@ -248,47 +232,35 @@ app.use(morgan('dev'));
 //     })
 //   }
 
-    //we can do this
+//we can do this
 
-    
-    // app.get('/api/v1/tours',getAllTours);
-    // app.post('/api/v1/tours',createTour);
-    // app.get('/api/v1/tours/:id',getTour);
-    // app.patch('/api/v1/tours/:id',updateTour);
-    // app.delete('/api/v1/tours/:id',deleteTour);
+// app.get('/api/v1/tours',getAllTours);
+// app.post('/api/v1/tours',createTour);
+// app.get('/api/v1/tours/:id',getTour);
+// app.patch('/api/v1/tours/:id',updateTour);
+// app.delete('/api/v1/tours/:id',deleteTour);
 
-    //or we can do 
+//or we can do
 
-    // app.route('/api/v1/tours').get(getAllTours).post(createTour);
-    // app.route('/api/v1/tours/:id').get(getTour).patch(updateTour).delete(deleteTour);
-    // app.route('/api/v1/users').get(getAllUsers).post(createUser);
-    // app.route('/api/v1/users').get(getUser).patch(updateUser).delete(deleteUser);
-
-
-
+// app.route('/api/v1/tours').get(getAllTours).post(createTour);
+// app.route('/api/v1/tours/:id').get(getTour).patch(updateTour).delete(deleteTour);
+// app.route('/api/v1/users').get(getAllUsers).post(createUser);
+// app.route('/api/v1/users').get(getUser).patch(updateUser).delete(deleteUser);
 
 //////////////////////////////////////////////////////////    Router Mounter  /////////////////////////////////////////////////////////////////////
 
 // const tourRouter = express.Router();
 // const userRouter = express.Router();
 
-
-
 //  tourRouter.route('/').get(getAllTours).post(createTour);
 //  tourRouter.route('/:id').get(getTour).patch(updateTour).delete(deleteTour);
 //  userRouter.route('/').get(getAllUsers).post(createUser);
 //  userRouter.route('/:id').get(getUser).patch(updateUser).delete(deleteUser);
 
-
 //shifted above code in userRoutes.js and tourRoutes.js
 
-
- app.use('/api/v1/tours',tourRouter);
- app.use('/api/v1/users',userRouter); 
-
-
-
-
+app.use('/api/v1/tours', tourRouter);
+app.use('/api/v1/users', userRouter);
 
 //   moving port to server.js
 
@@ -297,5 +269,29 @@ app.use(morgan('dev'));
 // app.listen(PORT, () => {
 //     console.log(`Listening on port: ${PORT}`);
 // });
+
+
+//error handler
+//always put it after all working urls
+
+app.all('*', (req, res, next) => {
+  // res.status(404).json({
+  //   status: 'fail',
+  //   message: `Can't find ${req.originalUrl} on this server!`
+  // });
+
+  //creating a new error
+  // const err = new Error(`Can't find ${req.originalUrl} on this server!`);
+  // err.statusCode = 404;
+  // err.status = 'fail';
+  // // passing error in next basically skips all the middleware in between and moves directly to our global error handler middleware
+  // next(err);
+
+  //using class based logic
+  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+});
+
+//global error handler middleware
+app.use(globalErrorHandler);
 
 module.exports = app;

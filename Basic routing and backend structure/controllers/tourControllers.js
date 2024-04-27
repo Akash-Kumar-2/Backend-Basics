@@ -1,5 +1,6 @@
 const Tour = require('./../models/tourModel');
 const APIFeatures = require('./../utlis/apiFeatures');
+const catchAsync = require('./../utlis/catchAsync');
 
 exports.aliasTopTours = async (req, res, next) => {
   req.query.limit = '5';
@@ -8,137 +9,241 @@ exports.aliasTopTours = async (req, res, next) => {
   next();
 };
 
-exports.getAllTours = async (req, res) => {
-  try {
-    // for creating a copy instead of referencing
-    //queries
-    // //building a query
+exports.getAllTours = catchAsync(async (req, res, next) => {
+  // try {
+  // for creating a copy instead of referencing
+  //queries
+  // //building a query
 
-    // //1A)Filtering && building
-    // const queryObj = { ...req.query };
-    // const excludeFields = ['page', 'sort', 'limit', 'fields'];
-    // excludeFields.forEach(ele => delete queryObj[ele]);
+  // //1A)Filtering && building
+  // const queryObj = { ...req.query };
+  // const excludeFields = ['page', 'sort', 'limit', 'fields'];
+  // excludeFields.forEach(ele => delete queryObj[ele]);
 
-    // //to later on use excludedfields for quering we use query to first store query
+  // //to later on use excludedfields for quering we use query to first store query
 
-    // //1B) Advance Filtering
-    // let queryStr = JSON.stringify(queryObj);
-    // queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`);
-    // let query = Tour.find(JSON.parse(queryStr));
+  // //1B) Advance Filtering
+  // let queryStr = JSON.stringify(queryObj);
+  // queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`);
+  // let query = Tour.find(JSON.parse(queryStr));
 
-    // //2) Sorting
-    // if (req.query.sort) {
-    //   const sortBy = req.query.sort.split(',').join(' ');
-    //   query = query.sort(sortBy);
-    // } else {
-    //   query = query.sort('-createdAt');
-    // }
+  // //2) Sorting
+  // if (req.query.sort) {
+  //   const sortBy = req.query.sort.split(',').join(' ');
+  //   query = query.sort(sortBy);
+  // } else {
+  //   query = query.sort('-createdAt');
+  // }
 
-    // //3)Limiting Fields
+  // //3)Limiting Fields
 
-    // if (req.query.fields) {
-    //   const fields = req.query.fields.split(',').join(' ');
-    //   query = query.select(fields);
-    // } else {
-    //   query = query.select('-__v');
-    // }
+  // if (req.query.fields) {
+  //   const fields = req.query.fields.split(',').join(' ');
+  //   query = query.select(fields);
+  // } else {
+  //   query = query.select('-__v');
+  // }
 
-    // // 4) pagination
-    // const page = req.query.page * 1 || 1;
-    // const limit = req.query.page * 1 || 2;
-    // const skip = (page - 1) * limit;
-    // query = query.skip(skip).limit(limit);
+  // // 4) pagination
+  // const page = req.query.page * 1 || 1;
+  // const limit = req.query.page * 1 || 2;
+  // const skip = (page - 1) * limit;
+  // query = query.skip(skip).limit(limit);
 
-    // if (req.query.page) {
-    //   const numTours = await Tour.countDocuments();
-    //   if (skip >= numTours) throw new Error('This page does not exist');
-    // }
+  // if (req.query.page) {
+  //   const numTours = await Tour.countDocuments();
+  //   if (skip >= numTours) throw new Error('This page does not exist');
+  // }
 
-    // Executing query
-    const features = new APIFeatures(Tour.find(), req.query)
-      .filter()
-      .sort()
-      .limitFields()
-      .paginate();
-    const tours = await features.query;
+  // Executing query
+  const features = new APIFeatures(Tour.find(), req.query)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+  const tours = await features.query;
 
-    res.status(200).json({
-      status: 'success',
-      data: {
-        tours
+  res.status(200).json({
+    status: 'success',
+    result: tours.length,
+    data: {
+      tours
+    }
+  });
+  // } catch (err) {
+  //   res.status(400).json({
+  //     status: 'fail',
+  //     message: err
+  //   });
+  // }
+});
+exports.getTour = catchAsync(async (req, res, next) => {
+  // try {
+  const tours = await Tour.findById(req.params.id);
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      tours
+    }
+  });
+  // } catch (err) {
+  //   res.status(400).json({
+  //     status: 'fail',
+  //     message: 'Invalid Data Handling'
+  //   });
+  // }
+});
+// moved function to catchAsync.js
+// const catchAsync = fn => {
+//   return (req, res, next) => {
+//     fn(req, res, next).catch(next);
+//   };
+// };
+exports.createTour = catchAsync(async (req, res, next) => {
+  // try {
+  //   const newTour = await Tour.create(req.body);
+  //   res.status(201).json({
+  //     status: 'success',
+  //     data: {
+  //       tour: newTour
+  //     }
+  //   });
+  // } catch (err) {
+  //   res.status(400).json({
+  //     status: 'fail',
+  //     message: err
+  //   });
+  // }
+
+  const newTour = await Tour.create(req.body);
+  res.status(201).json({
+    status: 'success',
+    data: {
+      tour: newTour
+    }
+  });
+});
+
+exports.updateTour = catchAsync(async (req, res, next) => {
+  // try {
+  const newTour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    //runValidators basically checks all the tour fields with their validators once we try to update it
+    runValidators: true
+  });
+  res.status(200).json({
+    status: 'success',
+    data: {
+      tour: newTour
+    }
+  });
+  // } catch (err) {
+  //   res.status(400).json({
+  //     status: 'fail',
+  //     message: 'Invalid Data Handling'
+  //   });
+});
+exports.deleteTour = catchAsync(async (req, res, next) => {
+  // try {
+  await Tour.findByIdAndDelete(req.params.id);
+  res.status(204).json({
+    status: 'success',
+    data: null
+  });
+  // } catch (err) {
+  //   res.status(400).json({
+  //     status: 'fail',
+  //     message: 'Invalid Data Handling'
+  //   });
+  // }
+});
+// Aggregation Pipeline
+exports.getTourStats = catchAsync(async (req, res, next) => {
+  // try {
+  const stats = await Tour.aggregate([
+    {
+      $match: { ratingsAverage: { $gte: 4.5 } }
+    },
+    {
+      $group: {
+        _id: '$difficulty',
+        numTour: { $sum: 1 },
+        numRating: { $sum: '$ratingsQuantity' },
+        avgRating: { $avg: '$ratingsAverage' },
+        avgPrice: { $avg: '$price' },
+        minPrice: { $min: '$price' },
+        maxPrice: { $max: '$price' }
       }
-    });
-  } catch (err) {
-    res.status(400).json({
-      status: 'fail',
-      message: err
-    });
-  }
-};
-exports.getTour = async (req, res) => {
-  try {
-    const tours = await Tour.findById(req.params.id);
-
-    res.status(200).json({
-      status: 'success',
-      data: {
-        tours
+    },
+    {
+      $sort: {
+        avgPrice: 1
       }
-    });
-  } catch (err) {
-    res.status(400).json({
-      status: 'fail',
-      message: 'Invalid Data Handling'
-    });
-  }
-};
-exports.createTour = async (req, res) => {
-  try {
-    const newTour = await Tour.create(req.body);
-    res.status(201).json({
-      status: 'success',
-      data: {
-        tour: newTour
+    }
+  ]);
+  res.status(200).json({
+    status: 'success',
+    data: {
+      stats
+    }
+  });
+  // } catch (err) {
+  //   res.status(400).json({
+  //     status: 'fail',
+  //     message: 'Invalid Data Handling'
+  //   });
+  // }
+});
+exports.getMonthlyPlan = catchAsync(async (req, res, next) => {
+  // try {
+  const year = req.params.year * 1;
+  const plan = await Tour.aggregate([
+    {
+      $unwind: '$startDates'
+    },
+    {
+      $match: {
+        startDates: {
+          $gte: new Date(`${year}-01-01`),
+          $lte: new Date(`${year}-12-31`)
+        }
       }
-    });
-  } catch (err) {
-    res.status(400).json({
-      status: 'fail',
-      message: err
-    });
-  }
-};
-
-exports.updateTour = async (req, res) => {
-  try {
-    const newTour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true
-    });
-    res.status(200).json({
-      status: 'success',
-      data: {
-        tour: newTour
+    },
+    {
+      $group: {
+        _id: { $month: '$startDates' },
+        numTourStarts: { $sum: 1 },
+        tours: { $push: '$name' }
       }
-    });
-  } catch (err) {
-    res.status(400).json({
-      status: 'fail',
-      message: 'Invalid Data Handling'
-    });
-  }
-};
-exports.deleteTour = async (req, res) => {
-  try {
-    await Tour.findByIdAndDelete(req.params.id);
-    res.status(204).json({
-      status: 'success',
-      data: null
-    });
-  } catch (err) {
-    res.status(400).json({
-      status: 'fail',
-      message: 'Invalid Data Handling'
-    });
-  }
-};
+    },
+    {
+      $addFields: {
+        month: '$_id'
+      }
+    },
+    {
+      $project: {
+        _id: 0
+      }
+    },
+    {
+      $sort: { numTourStarts: -1 }
+    },
+    {
+      $limit: 12
+    }
+  ]);
+  res.status(200).json({
+    status: 'success',
+    data: {
+      plan
+    }
+  });
+  // } catch (err) {
+  //   res.status(400).json({
+  //     status: 'fail',
+  //     message: 'Invalid Data Handling'
+  //   });
+  // }
+});

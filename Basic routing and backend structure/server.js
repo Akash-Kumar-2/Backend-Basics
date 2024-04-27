@@ -1,5 +1,7 @@
+/* eslint-disable no-console */
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+
 dotenv.config({ path: './config.env' });
 
 // use app file after env is config
@@ -17,9 +19,7 @@ mongoose
     useFindAndModify: false,
     useUnifiedTopology: true
   })
-  .then(() => console.log('We are connected'));
-
-// console.log(process.env)
+  .then(() => console.log('Database connected'));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
