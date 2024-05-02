@@ -1,6 +1,7 @@
 const Tour = require('./../models/tourModel');
 const APIFeatures = require('./../utlis/apiFeatures');
 const catchAsync = require('./../utlis/catchAsync');
+const AppError = require('./../utlis/appError');
 
 exports.aliasTopTours = async (req, res, next) => {
   req.query.limit = '5';
@@ -81,6 +82,9 @@ exports.getTour = catchAsync(async (req, res, next) => {
   // try {
   const tours = await Tour.findById(req.params.id);
 
+  if (!tours) {
+    return next(new AppError('Tour not found', 404));
+  }
   res.status(200).json({
     status: 'success',
     data: {
@@ -127,15 +131,18 @@ exports.createTour = catchAsync(async (req, res, next) => {
 
 exports.updateTour = catchAsync(async (req, res, next) => {
   // try {
-  const newTour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
+  const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
     //runValidators basically checks all the tour fields with their validators once we try to update it
     runValidators: true
   });
+  if (!tour) {
+    return next(new AppError('Tour not found', 404));
+  }
   res.status(200).json({
     status: 'success',
     data: {
-      tour: newTour
+      tour: tour
     }
   });
   // } catch (err) {
@@ -146,7 +153,10 @@ exports.updateTour = catchAsync(async (req, res, next) => {
 });
 exports.deleteTour = catchAsync(async (req, res, next) => {
   // try {
-  await Tour.findByIdAndDelete(req.params.id);
+  const tour = await Tour.findByIdAndDelete(req.params.id);
+  if (!tour) {
+    return next(new AppError('Tour not found', 404));
+  }
   res.status(204).json({
     status: 'success',
     data: null
